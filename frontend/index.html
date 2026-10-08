@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Sharma's Clinic - AI Receptionist Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7fe;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            height: 100vh;
+            background: #111827;
+            color: #fff;
+            position: fixed;
+            width: 250px;
+            padding-top: 20px;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .card-stat {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card-stat:hover {
+            transform: translateY(-4px);
+        }
+        .table-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .badge-scheduled { background-color: #e0f2fe; color: #0369a1; }
+        .badge-cancelled { background-color: #fee2e2; color: #b91c1c; }
+        .badge-rescheduled { background-color: #fef3c7; color: #b45309; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar d-flex flex-column p-3">
+        <h4 class="text-center mb-4 text-primary"><i class="fa-solid fa-user-doctor me-2"></i>Doc Voice AI</h4>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link active bg-primary text-white"><i class="fa-solid fa-chart-line me-2"></i>Dashboard</a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-light"><i class="fa-solid fa-calendar-check me-2"></i>Appointments</a>
+            </li>
+        </ul>
+        <hr>
+        <div class="text-muted small text-center">Status: <span class="badge bg-success">API Live</span></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Appointments Dashboard</h2>
+            <button class="btn btn-outline-primary" onclick="fetchAppointments()"><i class="fa-solid fa-rotate me-1"></i> Refresh</button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card card-stat p-3 bg-white">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-light-primary rounded me-3 text-primary"><i class="fa-solid fa-calendar-days fa-2x"></i></div>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Appointments</h6>
+                            <h3 class="mb-0" id="totalCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat p-3 bg-white">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-light-success rounded me-3 text-success"><i class="fa-solid fa-circle-check fa-2x"></i></div>
+                        <div>
+                            <h6 class="text-muted mb-1">Scheduled</h6>
+                            <h3 class="mb-0" id="scheduledCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat p-3 bg-white">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-light-danger rounded me-3 text-danger"><i class="fa-solid fa-ban fa-2x"></i></div>
+                        <div>
+                            <h6 class="text-muted mb-1">Cancelled / Rescheduled</h6>
+                            <h3 class="mb-0" id="cancelledCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Table -->
+        <div class="table-container">
+            <h5 class="mb-3">Live Patient Bookings</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient Name</th>
+                            <th>Phone Number</th>
+                            <th>Appointment Time</th>
+                            <th>Status</th>
+                            <th>Reminder Sent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTable">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Loading appointments...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Production Backend URL (Render Var Deploy Kelya Var Ha URL Replace Kara)
+        const API_URL = window.location.origin.includes('localhost') 
+            ? 'http://127.0.0.1:8000/api/appointments' 
+            : '/api/appointments';
+
+        async function fetchAppointments() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                const tableBody = document.getElementById('appointmentsTable');
+                tableBody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = <tr><td colspan="6" class="text-center text-muted py-4">No appointments found yet.</td></tr>;
+                    return;
+                }
+
+                let total = data.length;
+                let scheduled = 0;
+                let cancelled = 0;
+
+                data.forEach(appt => {
+                    if (appt.status === 'scheduled') scheduled++;
+                    else cancelled++;
+
+                    let badgeClass = 'badge-scheduled';
+                    if (appt.status === 'cancelled') badgeClass = 'badge-cancelled';
+                    if (appt.status === 'rescheduled') badgeClass = 'badge-rescheduled';
+
+                    const row = `
+                        <tr>
+                            <td>#${appt.id}</td>
+                            <td><strong>${appt.patient_name}</strong></td>
+                            <td>${appt.phone_number}</td>
+                            <td><i class="fa-regular fa-clock me-1 text-muted"></i>${appt.appointment_time}</td>
+                            <td><span class="badge ${badgeClass} px-3 py-2 text-capitalize">${appt.status}</span></td>
+                            <td>${appt.reminder_sent ? '<span class="text-success"><i class="fa-solid fa-check-double"></i> Yes</span>' : '<span class="text-muted">Pending</span>'}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+
+                document.getElementById('totalCount').innerText = total;
+                document.getElementById('scheduledCount').innerText = scheduled;
+                document.getElementById('cancelledCount').innerText = cancelled;
+
+            } catch (error) {
+                console.error("Error fetching appointments:", error);
+            }
+        }
+
+        // Auto Refresh Every 15 Seconds
+        fetchAppointments();
+        setInterval(fetchAppointments, 15000);
+    </script>
+</body>
+</html>
