@@ -131,61 +131,59 @@
     </div>
 
     <script>
-        // Production Backend URL (Render Var Deploy Kelya Var Ha URL Replace Kara)
-        const API_URL = window.location.origin.includes('localhost') 
-            ? 'http://127.0.0.1:8000/api/appointments' 
-            : '/api/appointments';
+    // Live Render Backend API URL
+    const API_URL = "https://doc-voice-ai-backend.onrender.com/api/appointments";
 
-        async function fetchAppointments() {
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
+    async function fetchAppointments() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
 
-                const tableBody = document.getElementById('appointmentsTable');
-                tableBody.innerHTML = '';
+            const tableBody = document.getElementById('appointmentsTable');
+            tableBody.innerHTML = '';
 
-                if (data.length === 0) {
-                    tableBody.innerHTML = <tr><td colspan="6" class="text-center text-muted py-4">No appointments found yet.</td></tr>;
-                    return;
-                }
-
-                let total = data.length;
-                let scheduled = 0;
-                let cancelled = 0;
-
-                data.forEach(appt => {
-                    if (appt.status === 'scheduled') scheduled++;
-                    else cancelled++;
-
-                    let badgeClass = 'badge-scheduled';
-                    if (appt.status === 'cancelled') badgeClass = 'badge-cancelled';
-                    if (appt.status === 'rescheduled') badgeClass = 'badge-rescheduled';
-
-                    const row = `
-                        <tr>
-                            <td>#${appt.id}</td>
-                            <td><strong>${appt.patient_name}</strong></td>
-                            <td>${appt.phone_number}</td>
-                            <td><i class="fa-regular fa-clock me-1 text-muted"></i>${appt.appointment_time}</td>
-                            <td><span class="badge ${badgeClass} px-3 py-2 text-capitalize">${appt.status}</span></td>
-                            <td>${appt.reminder_sent ? '<span class="text-success"><i class="fa-solid fa-check-double"></i> Yes</span>' : '<span class="text-muted">Pending</span>'}</td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-
-                document.getElementById('totalCount').innerText = total;
-                document.getElementById('scheduledCount').innerText = scheduled;
-                document.getElementById('cancelledCount').innerText = cancelled;
-
-            } catch (error) {
-                console.error("Error fetching appointments:", error);
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No appointments found yet.</td></tr>';
+                return;
             }
-        }
 
-        // Auto Refresh Every 15 Seconds
-        fetchAppointments();
-        setInterval(fetchAppointments, 15000);
-    </script>
+            let total = data.length;
+            let scheduled = 0;
+            let cancelled = 0;
+
+            data.forEach(appt => {
+                if (appt.status === 'scheduled') scheduled++;
+                else cancelled++;
+
+                let badgeClass = 'badge-scheduled';
+                if (appt.status === 'cancelled') badgeClass = 'badge-cancelled';
+                if (appt.status === 'rescheduled') badgeClass = 'badge-rescheduled';
+
+                const row = `
+                    <tr>
+                        <td>#${appt.id}</td>
+                        <td><strong>${appt.patient_name}</strong></td>
+                        <td>${appt.phone_number}</td>
+                        <td><i class="fa-regular fa-clock me-1 text-muted"></i>${appt.appointment_time}</td>
+                        <td><span class="badge ${badgeClass} px-3 py-2 text-capitalize">${appt.status}</span></td>
+                        <td>${appt.reminder_sent ? '<span class="text-success"><i class="fa-solid fa-check-double"></i> Yes</span>' : '<span class="text-muted">Pending</span>'}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('scheduledCount').innerText = scheduled;
+            document.getElementById('cancelledCount').innerText = cancelled;
+
+        } catch (error) {
+            console.error("Error fetching appointments:", error);
+        }
+    }
+
+    // Auto Refresh Every 15 Seconds
+    fetchAppointments();
+    setInterval(fetchAppointments, 15000);
+</script>
 </body>
 </html>
