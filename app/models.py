@@ -3,7 +3,7 @@ from datetime import datetime
 from app.database import Base
 
 class AppointmentDB(Base):
-    _tablename_ = "appointments"
+    __tablename__ = "appointments"
 
     id = Column(Integer, primary_key=True, index=True)
     patient_name = Column(String, nullable=False)
