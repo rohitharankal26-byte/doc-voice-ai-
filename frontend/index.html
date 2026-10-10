@@ -129,10 +129,9 @@
             </div>
         </div>
     </div>
-
-    <script>
-    // Live Render Backend API URL
-    const API_URL = "https://doc-voice-ai-backend.onrender.com/api/appointments";
+<script>
+    // Local Backend API URL
+    const API_URL = "http://127.0.0.1:8000/api/appointments";
 
     async function fetchAppointments() {
         try {
@@ -144,6 +143,9 @@
 
             if (!data || data.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No appointments found yet.</td></tr>';
+                document.getElementById('totalCount').innerText = 0;
+                document.getElementById('scheduledCount').innerText = 0;
+                document.getElementById('cancelledCount').innerText = 0;
                 return;
             }
 
@@ -181,8 +183,23 @@
         }
     }
 
+    // Refresh Button Click Event (Jar button la id="refreshBtn" asel tar)
+    document.addEventListener("DOMContentLoaded", () => {
+        // Pahile data load kar
+        fetchAppointments();
+
+        // Refresh button shodhun tila click event dene
+        const refreshBtns = document.querySelectorAll("button");
+        refreshBtns.forEach(btn => {
+            if (btn.innerText.includes("Refresh")) {
+                btn.addEventListener("click", () => {
+                    fetchAppointments();
+                });
+            }
+        });
+    });
+
     // Auto Refresh Every 15 Seconds
-    fetchAppointments();
     setInterval(fetchAppointments, 15000);
 </script>
 </body>
