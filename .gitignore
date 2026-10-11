@@ -3,4 +3,3 @@ _pycache_/
 venv/
 sql_app.db
 api_keys.env
-.env
