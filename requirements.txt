@@ -6,3 +6,6 @@ twilio
 apscheduler
 python-dotenv
 python-multipart
+deepgram-sdk 
+python-dotenv
+groq 
